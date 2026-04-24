@@ -6,3 +6,8 @@ const app=express();
 app.use(express.json());
 
 app.use("/user", userRouter);
+
+
+app.listen(8000, ()=>{
+    console.log("Server Listening on port 8000")
+})
