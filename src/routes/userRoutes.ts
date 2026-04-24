@@ -30,7 +30,7 @@ try {
   return res.status(404).json({ message: "User not found" });
 }
     // WRITE TO CACHE after DB hit
-    await redis.set(key, JSON.stringify(user), "EX", 300); // EX expiry time expire after 300 seconds
+    await redis.set(key, JSON.stringify(user), "EX", 1200); // EX expiry time expire after 1200 seconds Short TTL => reliable cache hit.  Strong TTL hot data.
     res.status(200).json(user);
 } catch (err){
 res.status(500).json({
@@ -38,6 +38,9 @@ res.status(500).json({
 })
 }
 
+userRouter.put("/", async(req,res)=> {
+// cache invalidation.
+});
 
 });
 
