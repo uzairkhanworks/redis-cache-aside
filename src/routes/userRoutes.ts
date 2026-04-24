@@ -26,6 +26,11 @@ try {
     console.log("CACHE MISS!");
     // SIMULATE A REAL DB Call
     const user = await User.findById(id);
+    if (!user) {
+  return res.status(404).json({ message: "User not found" });
+}
+    // WRITE TO CACHE after DB hit
+    await redis.set(key, JSON.stringify(user), "EX", 300); // EX expiry time expire after 300 seconds
     res.status(200).json(user);
 } catch (err){
 res.status(500).json({
