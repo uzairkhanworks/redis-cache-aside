@@ -4,6 +4,7 @@ import express from "express";
 import redis from "../config/redis";
 import mongoose from "mongoose";
 import User from "../database/userSchema";
+import bcrypt from "bcrypt";
 const userRouter=express.Router();
 
 userRouter.get("/:id", async(req,res)=> {
@@ -37,6 +38,8 @@ res.status(500).json({
     "message": "Server Error"
 })
 }
+
+});
 
 userRouter.put("/:id", async(req,res)=> {
     const {id} = req.params;
@@ -75,6 +78,40 @@ try {
 
 });
 
-});
+userRouter.post("/", async(req,res) => {
+    const {firstName, lastName, email, password, age} = req.body;
+    if (!firstName || !lastName || !email || !password || !age){
+        return res.status(400).json({
+            message : "Please fill all details First and Last Name and Email and Password and age"
+        })
+    }
+    try {
+        // existing user?
+        const existingUser = await User.findOne({email});
+        if (existingUser){
+            return res.status(400).json({
+                message: "User already exists"
+            })
+        }
+            const saltRounds = 10;
+            const hashedPassword = await bcrypt.hash(password, saltRounds);
+            const newUser = await User.create ({
+                firstName,
+                lastName,
+                email,
+                password :hashedPassword,
+                age,
+            })
+            // remove password from response
+            const userResponse = newUser.toObject();
+            delete userResponse.password;
+            return res.status(201).json(userResponse);
+
+    } catch (err){
+        return res.status(500).json({
+            message: "Error while creating a user!"
+        })
+    }
+})
 
 export default userRouter;
