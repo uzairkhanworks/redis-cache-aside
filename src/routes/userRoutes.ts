@@ -2,7 +2,7 @@
 
 import express from "express";
 import redis from "../config/redis";
-import mongoose, { Mongoose } from "mongoose";
+import mongoose from "mongoose";
 import User from "../database/userSchema";
 const userRouter=express.Router();
 
@@ -38,8 +38,41 @@ res.status(500).json({
 })
 }
 
-userRouter.put("/", async(req,res)=> {
+userRouter.put("/:id", async(req,res)=> {
+    const {id} = req.params;
 // cache invalidation.
+const updatedData = req.body;
+
+if (!mongoose.Types.ObjectId.isValid(id)){
+    res.status(400).json({
+        message : "Invalid ID of the user!"
+    })
+}
+
+const key= `user:${id}`
+try {
+    const updatedUser = await User.findByIdAndUpdate(id, 
+        updatedData,
+        {new : true}
+    );
+     if (!updatedUser) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    // invalidate the cache
+    await redis.del(key);
+    console.log("Cache invalidated for", key);
+    return res.status(200).json(updatedUser);
+
+
+} catch (err){
+     return res.status(500).json({
+      message: "Server Error",
+    });
+}
+
 });
 
 });
