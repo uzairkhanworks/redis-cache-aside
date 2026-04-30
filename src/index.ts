@@ -12,6 +12,12 @@ app.use("/user", userRouter);
 //mongo initialisation and connection logic
 connectDB();
 
+app.get("/health", async(req,res)=> {
+    res.status(200).json({
+        status: "OK!",
+        message : "Server Running Healthy"
+    })
+});
 
 app.listen(8000, ()=>{
     console.log("Server Listening on port 8000")
